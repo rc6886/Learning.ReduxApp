@@ -82,7 +82,7 @@ app.delete('/books/:_id', function(req, res) {
 
   Books.remove(query, function(err, books) {
     if (err) {
-      throw err;
+      console.log('# API DELETE BOOKS', err);
     }
     res.json(books);
   })
