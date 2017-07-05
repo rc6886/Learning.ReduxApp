@@ -1,23 +1,15 @@
 "use strict";
 
-export function booksReducers(state = {books:[
-  {
-    _id: 1,
-    title: 'this is the book title',
-    description: 'this is the book description',
-    price: 44.33
-    }, {
-    _id: 2,
-    title: 'this is the second book title',
-    description: 'this is the second book description',
-    price: 55
-  }]
-}, action) {
+export function booksReducers(state = {books:[]}, action) {
   switch (action.type) {
     case "GET_BOOKS":
-      return {...state, books: [...state.books]};
+      return {...state, books: [...action.payload]};
     case "POST_BOOK":
-      return {books: [...state.books, ...action.payload]};
+      return {books: [...state.books, ...action.payload], msg: 'Saved! Click to continue', style: 'success'};
+    case "POST_BOOK_REJECTED":
+      return {...state, msg: 'Please, try again', style: 'danger'};
+    case "RESET_BUTTON":
+      return {...state, msg: null, style: 'primary'};
     case "DELETE_BOOK":
       const currentBookToDelete = [...state.books];
       const indexToDelete = currentBookToDelete.findIndex(function (book) {

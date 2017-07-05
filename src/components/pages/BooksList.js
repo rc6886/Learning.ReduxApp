@@ -22,6 +22,7 @@ class BooksList extends React.Component {
                     _id={booksArr._id}
                     title={booksArr.title}
                     description={booksArr.description}
+                    images={booksArr.images}
                     price={booksArr.price} />
                 </Col>
             );
@@ -32,9 +33,6 @@ class BooksList extends React.Component {
                   <Cart />
                 </Row>
                 <Row>
-                  <Col xs={12} sm={6}>
-                    <BooksForm />
-                  </Col>
                   {booksList}
                 </Row>
             </Grid>

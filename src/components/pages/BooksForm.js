@@ -1,17 +1,44 @@
 'use strict';
 
 import React, { Component } from 'react'
-import { Well, Panel, FormControl, FormGroup, ControlLabel, Button } from 'react-bootstrap';
+import { 
+  InputGroup, DropdownButton, Image, Col, Row, 
+  Well, Panel, FormControl, FormGroup, ControlLabel, Button, 
+  MenuItem
+} from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { findDOMNode } from 'react-dom';
-import { postBooks, deleteBooks } from '../../actions/booksActions';
+import { postBooks, deleteBooks, getBooks, resetButton } from '../../actions/booksActions';
+import axios from 'axios';
 
 class BooksForm extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      images: [{}],
+      img: ''
+    };
+  }
+
+  componentDidMount() {
+    this.props.getBooks();
+
+    axios.get('/api/images')
+      .then(function(response) {
+        this.setState({ images: response.data });
+      }.bind(this))
+      .catch(function(err) {
+        this.setState({ images: 'error loading image files from the server', img: '' });
+      }.bind(this));
+  }
+  
   handleSubmit() {
     const book = [{
       title: findDOMNode(this.refs.title).value,
       description: findDOMNode(this.refs.description).value,
+      images: findDOMNode(this.refs.images).value,
       price: findDOMNode(this.refs.price).value
     }];
     this.props.postBooks(book);
@@ -22,49 +49,99 @@ class BooksForm extends Component {
     this.props.deleteBooks(bookId);
   }
 
+  handleSelect(name) {
+    this.setState({ img: '/images/' + name });
+  }
+
+  resetForm() {
+    this.props.resetButton();
+
+    findDOMNode(this.refs.title).value = '';
+    findDOMNode(this.refs.description).value = '';
+    findDOMNode(this.refs.price).value = '';
+    this.setState({ img: '' });
+  }
+
   render () {
     const booksList = this.props.books.map(book => {
       return <option key={book._id}>{book._id}</option>
     });
 
+    const imgList = this.state.images.map(function(image, i) {
+      return (
+        <MenuItem 
+          key={i} 
+          eventKey={image.name}
+          onClick={this.handleSelect.bind(this, image.name)}
+        >
+          {image.name}
+        </MenuItem>
+      );
+    }, this);
+
     return (
       <Well>
-        <Panel>
-          <FormGroup controlId="title">
-            <ControlLabel>Title</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Enter Title"
-              ref="title" />
-          </FormGroup>
+        <Row>
+          <Col xs={12} sm={6}>
+            <Panel>
+              <InputGroup>
+                  <FormControl type="text" ref="images" value={this.state.img} />
+                  <DropdownButton
+                    componentClass={InputGroup.Button}
+                    id="input-dropdown-addon"
+                    title="Select an image"
+                    bsStyle="primary">
+                    {imgList}
+                  </DropdownButton>
+                </InputGroup>
+                <Image src={this.state.img} responsive />
+            </Panel>
+          </Col>
+          <Col xs={12} sm={6}>
 
-          <FormGroup controlId="description">
-            <ControlLabel>Description</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Enter Description"
-              ref="description" />
-          </FormGroup>
+          <Panel>
+            <FormGroup controlId="title">
+              <ControlLabel>Title</ControlLabel>
+              <FormControl
+                type="text"
+                placeholder="Enter Title"
+                ref="title" />
+            </FormGroup>
+            <FormGroup controlId="description">
+              <ControlLabel>Description</ControlLabel>
+              <FormControl
+                type="text"
+                placeholder="Enter Description"
+                ref="description" />
+            </FormGroup>
+            <FormGroup controlId="price">
+              <ControlLabel>Price</ControlLabel>
+              <FormControl
+                type="text"
+                placeholder="Enter Price"
+                ref="price" />
+            </FormGroup>
+            <Button 
+              onClick={(!this.props.msg) ? (this.handleSubmit.bind(this)) : (this.resetForm.bind(this))} 
+              bsStyle={(!this.props.style) ? ('primary') : (this.props.style)}
+            >
+              {(!this.props.msg) ? ('Save book') : (this.props.msg)}
+            </Button>
+          </Panel>
 
-          <FormGroup controlId="price">
-            <ControlLabel>Price</ControlLabel>
-            <FormControl
-              type="text"
-              placeholder="Enter Price"
-              ref="price" />
-          </FormGroup>
-          <Button onClick={this.handleSubmit.bind(this)} bsStyle='primary'>Save Book</Button>
-        </Panel>
-        <Panel style={{marginTop: '25px'}}>
-          <FormGroup controlId="formControlsSelect">
-            <ControlLabel>Select a book id to delete</ControlLabel>
-            <FormControl ref="delete" componentClass="select" placeholder="select">
-              <option value="select">select</option>
-              {booksList}
-            </FormControl>
-          </FormGroup>
-          <Button onClick={this.onDelete.bind(this)} bsStyle="danger">Delete book</Button>
-        </Panel>
+          <Panel style={{marginTop: '25px'}}>
+            <FormGroup controlId="formControlsSelect">
+              <ControlLabel>Select a book id to delete</ControlLabel>
+              <FormControl ref="delete" componentClass="select" placeholder="select">
+                <option value="select">select</option>
+                {booksList}
+              </FormControl>
+            </FormGroup>
+            <Button onClick={this.onDelete.bind(this)} bsStyle="danger">Delete book</Button>
+          </Panel>
+
+          </Col>
+        </Row>
       </Well>
     )
   }
@@ -72,14 +149,18 @@ class BooksForm extends Component {
 
 function mapStateToProps(state) {
   return {
-    books: state.books.books
+    books: state.books.books,
+    msg: state.books.msg,
+    style: state.books.style
   }
 }
 
 function mapDispatchToProps(dispatch) {
   return bindActionCreators({
     postBooks: postBooks,
-    deleteBooks: deleteBooks
+    deleteBooks: deleteBooks,
+    getBooks: getBooks,
+    resetButton: resetButton
   }, dispatch);
 }
 
