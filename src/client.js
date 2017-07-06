@@ -9,24 +9,12 @@ import { Router, Route, IndexRoute, browserHistory } from 'react-router';
 import thunk from 'redux-thunk';
 
 const middleWare = applyMiddleware(thunk, logger);
-const store = createStore(reducers, middleWare);
-
-import BooksList from './components/pages/BooksList';
-import Menu from './components/Menu';
-import Footer from './components/Footer';
-import Cart from './components/pages/Cart';
-import BooksForm from './components/pages/BooksForm';
-import Main from './Main';
+const initialState = window.INITIAL_STATE;
+const store = createStore(reducers, initialState, middleWare);
 
 const Routes = (
     <Provider store={store}>
-      <Router history={browserHistory}>
-        <Route path="/" component={Main}>
-          <IndexRoute component={BooksList} />
-          <Route path="/admin" component={BooksForm} />
-          <Route path="/cart" component={Cart} />
-        </Route>
-      </Router>
+      {routes}
     </Provider>
 );
 
